@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"os/signal"
 	"runtime"
 	"strings"
 	"time"
@@ -30,8 +29,6 @@ func activeChromeTabTitleMacCmd() *exec.Cmd {
 		"tell application \"Google Chrome\" to return title of active tab of front window",
 	)
 }
-
-var r Records
 
 var cswitch = 0
 var prev []byte
@@ -57,7 +54,6 @@ func checkSwitchMac(db *sql.DB) {
         When: time.Now(),
       }
       SaveRecord(db, &record)
-      r.records = append(r.records, record)
     }
 	}
 
@@ -81,7 +77,6 @@ func checkSwitchMac(db *sql.DB) {
       }
 
       SaveRecord(db, &record)
-      r.records = append(r.records, record)
 		}
 	}
 	time.Sleep(2 * time.Second)
@@ -115,17 +110,6 @@ func main() {
 	}
 
   log.Print("Connected to database")
-
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		for range c {
-			fmt.Printf("\nContext Switches: %v\n", cswitch)
-      //BulkSaveRecords(db, &r)
-			os.Exit(0)
-		}
-	}()
-
 
 	switch runtime.GOOS {
 	case "darwin":
